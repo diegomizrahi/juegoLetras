@@ -3,64 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Diccionario 500+ Palabras</title>
+    <title>Abecedario Dual</title>
     <style>
         :root { --azul: #007AFF; --gris: #8E8E93; --fondo: #F2F2F7; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--fondo);
-            margin: 0; padding: 20px;
+            margin: 0; padding: 15px;
             display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden;
+            user-select: none;
         }
-        .cabecera { text-align: center; margin-bottom: 10px; }
-        #txt-mayus { font-size: 2.2rem; font-weight: 800; color: var(--azul); display: block; }
-        #txt-minus { font-size: 1.5rem; color: var(--gris); font-weight: 500; display: block; }
+
+        /* Guía visual arriba */
+        .cabecera { text-align: center; margin-bottom: 5px; }
+        #txt-mayus { font-size: 2rem; font-weight: 800; color: var(--azul); display: block; }
+        #txt-minus { font-size: 1.4rem; color: var(--gris); display: block; margin-top: -5px; }
+
         .cuadro-imagen {
-            width: 280px; height: 280px; background: #FFF; border-radius: 30px;
+            width: 240px; height: 240px; background: #FFF; border-radius: 25px;
             display: flex; justify-content: center; align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin: 15px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin: 10px 0;
             border: 1px solid #E5E5EA; overflow: hidden;
         }
-        #imagen-principal { width: 100%; height: 100%; object-fit: cover; }
+        #imagen-principal { width: 90%; height: 90%; object-fit: contain; }
+
         #progreso {
-            font-size: 2.8rem; font-weight: 900; letter-spacing: 6px;
-            margin: 15px 0; color: #1C1C1E; text-transform: uppercase; min-height: 50px;
+            font-size: 2.2rem; font-weight: 900; letter-spacing: 4px;
+            margin: 10px 0; color: #1C1C1E; text-transform: uppercase; min-height: 45px;
         }
+
+        /* Teclado Dual */
         .teclado {
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
-            width: 100%; max-width: 400px;
+            display: grid; 
+            grid-template-columns: repeat(6, 1fr); 
+            gap: 6px;
+            width: 100%; 
+            max-width: 420px;
         }
+
         .tecla {
-            aspect-ratio: 1/1; background: #FFF; border: none; border-radius: 12px;
-            font-size: 1.3rem; font-weight: 600; color: #000;
-            box-shadow: 0 4px 0 #D1D1D6; display: flex; justify-content: center;
-            align-items: center; -webkit-tap-highlight-color: transparent;
+            aspect-ratio: 1/1.1; 
+            background: #FFF; border: none; border-radius: 10px;
+            box-shadow: 0 3px 0 #D1D1D6; 
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center;
+            -webkit-tap-highlight-color: transparent;
+            padding: 2px;
         }
-        .tecla:active { transform: translateY(4px); box-shadow: none; background: #E5E5EA; }
-        @media (max-width: 375px) {
-            .cuadro-imagen { width: 220px; height: 220px; }
-            #progreso { font-size: 2rem; }
-            .teclado { grid-template-columns: repeat(6, 1fr); }
+
+        .tecla span.M { font-size: 1.1rem; font-weight: 800; color: #000; }
+        .tecla span.m { font-size: 0.9rem; font-weight: 400; color: var(--gris); }
+
+        .tecla:active { transform: translateY(3px); box-shadow: none; background: #E5E5EA; }
+
+        @media (max-width: 320px) {
+            .teclado { grid-template-columns: repeat(5, 1fr); }
+            .cuadro-imagen { width: 180px; height: 180px; }
         }
     </style>
 </head>
 <body>
 
     <div class="cabecera">
-        <span id="txt-mayus">CARGANDO</span>
-        <span id="txt-minus">cargando</span>
+        <span id="txt-mayus">...</span>
+        <span id="txt-minus">...</span>
     </div>
 
     <div class="cuadro-imagen">
-        <img id="imagen-principal" src="" alt="Dibujo">
+        <img id="imagen-principal" src="" alt="Cargando...">
     </div>
 
     <div id="progreso">_ _ _</div>
     <div class="teclado" id="teclado"></div>
 
     <script>
-        // Diccionario extendido (500 palabras aprox)
         const diccionario = [
             {es:"ABACO", en:"abacus"},{es:"ABEJA", en:"bee"},{es:"ABUELA", en:"grandmother"},{es:"ABUELO", en:"grandfather"},{es:"ACEITE", en:"oil"},{es:"ACEITUNA", en:"olive"},{es:"AGUILA", en:"eagle"},{es:"AGUJA", en:"needle"},{es:"AGUACATE", en:"avocado"},{es:"AJEDREZ", en:"chess"},{es:"AJO", en:"garlic"},{es:"ALA", en:"wing"},{es:"ALFOMBRA", en:"carpet"},{es:"ALGODON", en:"cotton"},{es:"ALMENDRA", en:"almond"},{es:"ALMOHADA", en:"pillow"},{es:"AMBULANCIA", en:"ambulance"},{es:"ANCLA", en:"anchor"},{es:"ANILLO", en:"ring"},{es:"ANTENA", en:"antenna"},{es:"ARAÑA", en:"spider"},{es:"ARBOL", en:"tree"},{es:"ARCOIRIS", en:"rainbow"},{es:"ARROZ", en:"rice"},{es:"ASTRONAUTA", en:"astronaut"},{es:"AUTOBUS", en:"bus"},{es:"AVION", en:"airplane"},{es:"AVISPA", en:"wasp"},{es:"AZUCAR", en:"sugar"},{es:"BALLENA", en:"whale"},{es:"BANANA", en:"banana"},{es:"BANCO", en:"bench"},{es:"BANDERA", en:"flag"},{es:"BAÑERA", en:"bathtub"},{es:"BARCO", en:"boat"},{es:"BARRIL", en:"barrel"},{es:"BATE", en:"baseball bat"},{es:"BATERIA", en:"drums"},{es:"BAUL", en:"trunk"},{es:"BEBE", en:"baby"},{es:"BELLOTA", en:"acorn"},{es:"BERENJENA", en:"eggplant"},{es:"BESO", en:"kiss"},{es:"BICICLETA", en:"bicycle"},{es:"BOCA", en:"mouth"},{es:"BOLSA", en:"bag"},{es:"BOMBERO", en:"firefighter"},{es:"BOTA", en:"boot"},{es:"BOTELLA", en:"bottle"},{es:"BOTON", en:"button"},{es:"BRAZO", en:"arm"},{es:"BRUJA", en:"witch"},{es:"BRUJULA", en:"compass"},{es:"BUHO", en:"owl"},{es:"BURRO", en:"donkey"},{es:"BUZO", en:"diver"},{es:"CABALLO", en:"horse"},{es:"CABEZA", en:"head"},{es:"CABRA", en:"goat"},{es:"CACTUS", en:"cactus"},{es:"CAFE", en:"coffee"},{es:"CALABAZA", en:"pumpkin"},{es:"CALCETIN", en:"sock"},{es:"CAMA", en:"bed"},{es:"CAMARA", en:"camera"},{es:"CAMION", en:"truck"},{es:"CAMISA", en:"shirt"},{es:"CAMPANA", en:"bell"},{es:"CANGREJO", en:"crab"},{es:"CANGURO", en:"kangaroo"},{es:"CANOA", en:"canoe"},{es:"CARACOL", en:"snail"},{es:"CARAMELO", en:"candy"},{es:"CARRO", en:"car"},{es:"CARTA", en:"letter"},{es:"CASCO", en:"helmet"},{es:"CASTILLO", en:"castle"},{es:"CEBOLLA", en:"onion"},{es:"CEBRA", en:"zebra"},{es:"CELULAR", en:"phone"},{es:"CEPILLO", en:"brush"},{es:"CERDO", en:"pig"},{es:"CEREZA", en:"cherry"},{es:"CESTA", en:"basket"},{es:"CHAMPU", en:"shampoo"},{es:"CHAQUETA", en:"jacket"},{es:"CHICLE", en:"gum"},{es:"CHIMENEA", en:"chimney"},{es:"CHOCOLATE", en:"chocolate"},{es:"CHUPETE", en:"pacifier"},{es:"CIERVO", en:"deer"},{es:"CINE", en:"cinema"},{es:"CINTURON", en:"belt"},{es:"CIRCO", en:"circus"},{es:"CIRUELA", en:"plum"},{es:"CISNE", en:"swan"},{es:"CLAVO", en:"nail"},{es:"COCO", en:"coconut"},{es:"COCODRILO", en:"crocodile"},{es:"COCHE", en:"car"},{es:"COHETE", en:"rocket"},{es:"COLA", en:"glue"},{es:"COLCHON", en:"mattress"},{es:"COLIBRI", en:"hummingbird"},{es:"COLLAR", en:"necklace"},{es:"COLMENA", en:"beehive"},{es:"COLUMPIO", en:"swing"},{es:"COMETA", en:"kite"},{es:"CONEJO", en:"rabbit"},{es:"COPA", en:"cup"},{es:"CORAZON", en:"heart"},{es:"CORBATA", en:"tie"},{es:"CORONA", en:"crown"},{es:"CORTINA", en:"curtain"},{es:"CUADRADO", en:"square"},{es:"CUADRO", en:"painting"},{es:"CUCHARA", en:"spoon"},{es:"CUCHILLO", en:"knife"},{es:"CUELLO", en:"neck"},{es:"CUERDA", en:"rope"},{es:"CUERNO", en:"horn"},{es:"CUEVA", en:"cave"},{es:"CUNA", en:"crib"},{es:"DADO", en:"dice"},{es:"DEDO", en:"finger"},{es:"DELFIN", en:"dolphin"},{es:"DENTISTA", en:"dentist"},{es:"DESIERTO", en:"desert"},{es:"DIAMANTE", en:"diamond"},{es:"DIENTE", en:"tooth"},{es:"DINOSAURIO", en:"dinosaur"},{es:"DINERO", en:"money"},{es:"DOCTOR", en:"doctor"},{es:"DOMINO", en:"domino"},{es:"DONA", en:"donut"},{es:"DRAGON", en:"dragon"},{es:"DUCHA", en:"shower"},{es:"DUENDE", en:"elf"},{es:"DULCE", en:"candy"},{es:"DURAZNO", en:"peach"},{es:"EDIFICIO", en:"building"},{es:"ELEFANTE", en:"elephant"},{es:"EMPANADA", en:"pie"},{es:"ENANO", en:"dwarf"},{es:"ENCHUFE", en:"plug"},{es:"ENFERMERA", en:"nurse"},{es:"ESCALERA", en:"ladder"},{es:"ESCOBA", en:"broom"},{es:"ESCORPION", en:"scorpion"},{es:"ESCUDO", en:"shield"},{es:"ESCUELA", en:"school"},{es:"ESFERA", en:"sphere"},{es:"ESPEJO", en:"mirror"},{es:"ESPONJA", en:"sponge"},{es:"ESQUELETO", en:"skeleton"},{es:"ESTRELLA", en:"star"},{es:"ESTUFA", en:"stove"},{es:"FALDA", en:"skirt"},{es:"FANTASMA", en:"ghost"},{es:"FARO", en:"lighthouse"},{es:"FARMACIA", en:"pharmacy"},{es:"FLECHA", en:"arrow"},{es:"FLOR", en:"flower"},{es:"FLAUTA", en:"flute"},{es:"FOCA", en:"seal"},{es:"FUEGO", en:"fire"},{es:"FUENTE", en:"fountain"},{es:"FUTBOL", en:"soccer"},{es:"GAFAS", en:"glasses"},{es:"GALLETA", en:"cookie"},{es:"GALLINA", en:"hen"},{es:"GALLO", en:"rooster"},{es:"GANCHO", en:"hook"},{es:"GATO", en:"cat"},{es:"GAVIOTA", en:"seagull"},{es:"GELATINA", en:"jelly"},{es:"GIGANTE", en:"giant"},{es:"GIMNASIO", en:"gym"},{es:"GIRAFA", en:"giraffe"},{es:"GIRASOL", en:"sunflower"},{es:"GLOBO", en:"balloon"},{es:"GOMA", en:"eraser"},{es:"GORILA", en:"gorilla"},{es:"GORRA", en:"cap"},{es:"GOTA", en:"drop"},{es:"GRANJA", en:"farm"},{es:"GRIFO", en:"tap"},{es:"GRILLO", en:"cricket"},{es:"GUANTE", en:"glove"},{es:"GUITARRA", en:"guitar"},{es:"GUSANO", en:"worm"},{es:"HACHA", en:"axe"},{es:"HADA", en:"fairy"},{es:"HALCON", en:"falcon"},{es:"HAMBURGUESA", en:"hamburger"},{es:"HARINA", en:"flour"},{es:"HELADO", en:"ice cream"},{es:"HELICOPTERO", en:"helicopter"},{es:"HIELO", en:"ice"},{es:"HIENA", en:"hyena"},{es:"HIERBA", en:"grass"},{es:"HIERRO", en:"iron"},{es:"HIGO", en:"fig"},{es:"HILO", en:"thread"},{es:"HIPOPOTAMO", en:"hippo"},{es:"HORMIGA", en:"ant"},{es:"HORNO", en:"oven"},{es:"HOSPITAL", en:"hospital"},{es:"HOTEL", en:"hotel"},{es:"HUESO", en:"bone"},{es:"HUEVO", en:"egg"},{es:"HUMO", en:"smoke"},{es:"IGLESIA", en:"church"},{es:"IGLU", en:"igloo"},{es:"IGUANA", en:"iguana"},{es:"IMAN", en:"magnet"},{es:"IMPRESORA", en:"printer"},{es:"INSECTO", en:"insect"},{es:"ISLA", en:"island"},{es:"JABON", en:"soap"},{es:"JAULA", en:"cage"},{es:"JAGUAR", en:"jaguar"},{es:"JAMON", en:"ham"},{es:"JARRA", en:"jar"},{es:"JARRON", en:"vase"},{es:"JERINGA", en:"syringe"},{es:"JIRAFA", en:"giraffe"},{es:"JUGUETE", en:"toy"},{es:"JUNGLA", en:"jungle"},{es:"KIWI", en:"kiwi"},{es:"KOALA", en:"koala"},{es:"LAMPARA", en:"lamp"},{es:"LANA", en:"wool"},{es:"LANGOSTA", en:"lobster"},{es:"LANZA", en:"spear"},{es:"LAPIZ", en:"pencil"},{es:"LAVADORA", en:"washing machine"},{es:"LECHE", en:"milk"},{es:"LECHUGA", en:"lettuce"},{es:"LEON", en:"lion"},{es:"LEOPARDO", en:"leopard"},{es:"LIBELULA", en:"dragonfly"},{es:"LIBRO", en:"book"},{es:"LIMON", en:"lemon"},{es:"LINTERNA", en:"flashlight"},{es:"LOBO", en:"wolf"},{es:"LORO", en:"parrot"},{es:"LUNA", en:"moon"},{es:"LUPA", en:"magnifier"},{es:"LUZ", en:"light"},{es:"MACHETE", en:"machete"},{es:"MADERA", en:"wood"},{es:"MAIZ", en:"corn"},{es:"MALETA", en:"suitcase"},{es:"MANI", en:"peanut"},{es:"MANDARINA", en:"tangerine"},{es:"MANGO", en:"mango"},{es:"MANGUERA", en:"hose"},{es:"MANO", en:"hand"},{es:"MANTEQUILLA", en:"butter"},{es:"MANZANA", en:"apple"},{es:"MAPA", en:"map"},{es:"MARIPOSA", en:"butterfly"},{es:"MARTILLO", en:"hammer"},{es:"MASCARA", en:"mask"},{es:"MEDUSA", en:"jellyfish"},{es:"MELON", en:"melon"},{es:"MESA", en:"table"},{es:"MIEL", en:"honey"},{es:"MOCHILA", en:"backpack"},{es:"MOLINO", en:"windmill"},{es:"MOMIA", en:"mummy"},{es:"MONEDA", en:"coin"},{es:"MONO", en:"monkey"},{es:"MONTAÑA", en:"mountain"},{es:"MORA", en:"blackberry"},{es:"MOSCA", en:"fly"},{es:"MOSQUITO", en:"mosquito"},{es:"MOTOR", en:"motor"},{es:"MUÑECA", en:"doll"},{es:"MURCIELAGO", en:"bat"},{es:"MUSEO", en:"museum"},{es:"MUSICA", en:"music"},{es:"NARANJA", en:"orange"},{es:"NARIZ", en:"nose"},{es:"NAVIDAD", en:"christmas"},{es:"NEVERA", en:"fridge"},{es:"NIDO", en:"nest"},{es:"NIEVE", en:"snow"},{es:"NIÑO", en:"boy"},{es:"NOCHE", en:"night"},{es:"NUBE", en:"cloud"},{es:"NUEZ", en:"nut"},{es:"OJO", en:"eye"},{es:"OLA", en:"wave"},{es:"OLLA", en:"pot"},{es:"ORUGA", en:"caterpillar"},{es:"ORO", en:"gold"},{es:"OSO", en:"bear"},{es:"OSTRA", en:"oyster"},{es:"OVEJA", en:"sheep"},{es:"OVNI", en:"ufo"},{es:"PALA", en:"shovel"},{es:"PALMERA", en:"palm"},{es:"PALOMA", en:"pigeon"},{es:"PAN", en:"bread"},{es:"PANDA", en:"panda"},{es:"PANTALON", en:"pants"},{es:"PANTALLA", en:"screen"},{es:"PAÑAL", en:"diaper"},{es:"PAPA", en:"potato"},{es:"PAPEL", en:"paper"},{es:"PARAGUAS", en:"umbrella"},{es:"PARQUE", en:"park"},{es:"PASTEL", en:"cake"},{es:"PATO", en:"duck"},{es:"PAVO", en:"turkey"},{es:"PAYASO", en:"clown"},{es:"PEINE", en:"comb"},{es:"PELOTA", en:"ball"},{es:"PEPINO", en:"cucumber"},{es:"PERA", en:"pear"},{es:"PERRO", en:"dog"},{es:"PESCADO", en:"fish"},{es:"PIANO", en:"piano"},{es:"PIE", en:"foot"},{es:"PIEDRA", en:"stone"},{es:"PINGUINO", en:"penguin"},{es:"PINO", en:"pine"},{es:"PINTURA", en:"paint"},{es:"PIÑA", en:"pineapple"},{es:"PIRAMIDE", en:"pyramid"},{es:"PIRATA", en:"pirate"},{es:"PISCINA", en:"pool"},{es:"PIZARRA", en:"blackboard"},{es:"PLANETA", en:"planet"},{es:"PLANTA", en:"plant"},{es:"PLANO", en:"plane"},{es:"PLATO", en:"plate"},{es:"PLAYA", en:"beach"},{es:"PLUMA", en:"feather"},{es:"POLLO", en:"chicken"},{es:"PUENTE", en:"bridge"},{es:"PUERTA", en:"door"},{es:"PULPO", en:"octopus"},{es:"PULSERA", en:"bracelet"},{es:"QUESO", en:"cheese"},{es:"RADIO", en:"radio"},{es:"RAMA", en:"branch"},{es:"RANA", en:"frog"},{es:"RAQUETA", en:"racket"},{es:"RATA", en:"rat"},{es:"RATON", en:"mouse"},{es:"RAYO", en:"lightning"},{es:"REGALO", en:"gift"},{es:"REGLA", en:"ruler"},{es:"REINA", en:"queen"},{es:"RELOJ", en:"clock"},{es:"RENO", en:"reindeer"},{es:"REY", en:"king"},{es:"RIO", en:"river"},{es:"ROBOT", en:"robot"},{es:"ROCA", en:"rock"},{es:"ROSA", en:"rose"},{es:"RUEDA", en:"wheel"},{es:"SAL", en:"salt"},{es:"SALAMI", en:"salami"},{es:"SALCHICHA", en:"sausage"},{es:"SANDALIA", en:"sandal"},{es:"SANDIA", en:"watermelon"},{es:"SAPO", en:"toad"},{es:"SARTEN", en:"pan"},{es:"SAXOFON", en:"sax"},{es:"SEMILLA", en:"seed"},{es:"SERPIENTE", en:"snake"},{es:"SERRUCHO", en:"saw"},{es:"SILLA", en:"chair"},{es:"SIRENA", en:"mermaid"},{es:"SOFA", en:"sofa"},{es:"SOL", en:"sun"},{es:"SOLDADO", en:"soldier"},{es:"SOMBRERO", en:"hat"},{es:"SOPA", en:"soup"},{es:"TABLA", en:"board"},{es:"TAMBOR", en:"drum"},{es:"TANQUE", en:"tank"},{es:"TARTA", en:"cake"},{es:"TAZA", en:"cup"},{es:"TECLADO", en:"keyboard"},{es:"TELEFONO", en:"phone"},{es:"TELEVISOR", en:"tv"},{es:"TENEDOR", en:"fork"},{es:"TENIS", en:"tennis"},{es:"TIGRE", en:"tiger"},{es:"TIJERA", en:"scissors"},{es:"TIMON", en:"rudder"},{es:"TINTERO", en:"inkwell"},{es:"TIZA", en:"chalk"},{es:"TOALLA", en:"towel"},{es:"TOMATE", en:"tomato"},{es:"TORO", en:"bull"},{es:"TORRE", en:"tower"},{es:"TORTUGA", en:"turtle"},{es:"TREN", en:"train"},{es:"TRIANGULO", en:"triangle"},{es:"TROFEO", en:"trophy"},{es:"TROMPETA", en:"trumpet"},{es:"TRONCO", en:"trunk"},{es:"TUCAN", en:"toucan"},{es:"TULIPAN", en:"tulip"},{es:"TUNEL", en:"tunnel"},{es:"UVA", en:"grapes"},{es:"VACA", en:"cow"},{es:"VALLE", en:"valley"},{es:"VAMPIRO", en:"vampire"},{es:"VASO", en:"glass"},{es:"VELA", en:"candle"},{es:"VELERO", en:"sailboat"},{es:"VENTANA", en:"window"},{es:"VENTILADOR", en:"fan"},{es:"VESTIDO", en:"dress"},{es:"VIOLIN", en:"violin"},{es:"VOLCAN", en:"volcano"},{es:"XILOFONO", en:"xylophone"},{es:"YATE", en:"yacht"},{es:"YEMA", en:"yolk"},{es:"YOYO", en:"yo-yo"},{es:"ZANAHORIA", en:"carrot"},{es:"ZAPATO", en:"shoe"},{es:"ZORRO", en:"fox"},{es:"ZUMO", en:"juice"}
         ];
@@ -74,7 +91,6 @@
             document.getElementById('txt-mayus').innerText = actual.es;
             document.getElementById('txt-minus').innerText = actual.es.toLowerCase();
             
-            // Renderizado de imagen más robusto
             const query = encodeURIComponent(actual.en);
             document.getElementById('imagen-principal').src = `https://loremflickr.com/400/400/${query},drawing/all`;
             
@@ -94,20 +110,17 @@
                 escrito += l;
                 dibujar();
                 if (escrito === actual.es) {
-                    setTimeout(() => { 
-                        // Efecto simple sin alert molesto si prefieres, pero alert funciona bien
-                        alert("¡Excelente! 🎉"); 
-                        iniciar(); 
-                    }, 300);
+                    setTimeout(() => { alert("¡Lo lograste! 🎉"); iniciar(); }, 300);
                 }
             }
         }
 
+        // Crear Teclado Aa
         const abc = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
         abc.forEach(letra => {
             const btn = document.createElement('div');
             btn.className = 'tecla';
-            btn.innerText = letra;
+            btn.innerHTML = `<span class="M">${letra}</span><span class="m">${letra.toLowerCase()}</span>`;
             btn.onclick = () => tocarLetra(letra);
             document.getElementById('teclado').appendChild(btn);
         });

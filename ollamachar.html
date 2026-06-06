@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>J.A.R.V.I.S — Stark Industries</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #00d4ff;
+    --blue-dim: #0088aa;
+    --gold: #ffc940;
+    --red: #ff3a3a;
+    --green: #00ff88;
+    --bg: #020c14;
+    --panel: rgba(0,212,255,0.04);
+    --border: rgba(0,212,255,0.2);
+    --text: #c8f0ff;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--text);
+    overflow: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none; z-index:0;
+  }
+
+  body::after {
+    content:'';
+    position:fixed;
+    top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:80vw; height:80vh;
+    background:radial-gradient(ellipse, rgba(0,100,180,0.12) 0%, transparent 70%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* ── LAYOUT WRAPPER ── */
+  #app {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+  }
+
+  /* ── HEADER ── */
+  header {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,10,20,0.9);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo { display:flex; align-items:center; gap:12px; }
+
+  .arc-reactor {
+    width:34px; height:34px;
+    position:relative; flex-shrink:0;
+  }
+  .arc-reactor svg { width:100%; height:100%; animation:reactor-spin 8s linear infinite; }
+  @keyframes reactor-spin { to { transform:rotate(360deg); } }
+  .arc-core {
+    position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%);
+    width:10px; height:10px;
+    background:var(--blue); border-radius:50%;
+    box-shadow:0 0 12px var(--blue), 0 0 24px var(--blue);
+    animation:core-pulse 2s ease-in-out infinite;
+  }
+  @keyframes core-pulse {
+    0%,100%{box-shadow:0 0 12px var(--blue),0 0 24px var(--blue);}
+    50%{box-shadow:0 0 6px var(--blue);}
+  }
+
+  .title-group h1 {
+    font-family:'Orbitron',sans-serif;
+    font-size:16px; font-weight:900;
+    letter-spacing:5px; color:var(--blue);
+    text-shadow:0 0 20px rgba(0,212,255,0.6);
+  }
+  .title-group p { font-size:9px; letter-spacing:2px; color:var(--blue-dim); margin-top:2px; }
+
+  .status-panel { display:flex; gap:16px; align-items:center; }
+  .status-item { text-align:right; font-size:9px; letter-spacing:1px; color:var(--blue-dim); }
+  .status-item span { display:block; color:var(--blue); font-size:11px; font-weight:bold; }
+  .online-dot {
+    width:8px; height:8px;
+    background:var(--green); border-radius:50%;
+    box-shadow:0 0 8px var(--green);
+    animation:blink 2s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  /* Scan line */
+  .scan-line {
+    position:fixed; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--blue),transparent);
+    opacity:0.3; animation:scan 5s linear infinite; z-index:5; pointer-events:none;
+  }
+  @keyframes scan { 0%{top:0;} 100%{top:100%;} }
+
+  /* ── CHAT AREA ── */
+  #chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0; /* critical for flex scroll */
+    scrollbar-width: thin;
+    scrollbar-color: var(--blue-dim) transparent;
+  }
+  #chat-container::-webkit-scrollbar { width:4px; }
+  #chat-container::-webkit-scrollbar-thumb { background:var(--blue-dim); border-radius:2px; }
+
+  /* ── WAVEFORM ── */
+  #waveform {
+    flex-shrink: 0;
+    height: 36px;
+    display:flex; align-items:center; justify-content:center; gap:3px;
+    padding:0 20px; opacity:0; transition:opacity 0.3s;
+  }
+  #waveform.active { opacity:1; }
+  .wave-bar {
+    width:3px; background:var(--blue); border-radius:2px; height:4px; transition:height 0.1s;
+  }
+
+  /* ── MESSAGES ── */
+  .message {
+    display:flex; gap:10px; align-items:flex-start;
+    animation:msg-in 0.3s ease-out;
+    max-width: 88%;
+  }
+  @keyframes msg-in { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
+  .message.user { align-self:flex-end; flex-direction:row-reverse; }
+
+  .msg-avatar {
+    width:30px; height:30px; border-radius:4px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Orbitron',sans-serif; font-size:9px; font-weight:700;
+    flex-shrink:0; letter-spacing:1px;
+  }
+  .message.jarvis .msg-avatar {
+    background:rgba(0,212,255,0.1); border:1px solid var(--blue); color:var(--blue);
+  }
+  .message.user .msg-avatar {
+    background:rgba(255,201,64,0.1); border:1px solid var(--gold); color:var(--gold);
+  }
+  .msg-avatar.speaking { animation:avatar-speak 0.3s ease-in-out infinite alternate; }
+  @keyframes avatar-speak {
+    from{box-shadow:0 0 6px rgba(0,212,255,0.3);}
+    to{box-shadow:0 0 20px rgba(0,212,255,0.8);}
+  }
+
+  .msg-content { display:flex; flex-direction:column; gap:3px; }
+  .msg-label { font-size:8px; letter-spacing:2px; color:var(--blue-dim); text-transform:uppercase; }
+  .message.user .msg-label { text-align:right; color:rgba(255,201,64,0.5); }
+
+  .msg-bubble {
+    padding:10px 14px; border-radius:2px; line-height:1.6;
+    font-size:13px; position:relative;
+  }
+  .message.jarvis .msg-bubble {
+    background:var(--panel); border:1px solid var(--border); border-left:2px solid var(--blue);
+  }
+  .message.jarvis .msg-bubble::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,var(--blue),transparent);
+  }
+  .message.user .msg-bubble {
+    background:rgba(255,201,64,0.05);
+    border:1px solid rgba(255,201,64,0.2); border-right:2px solid var(--gold);
+  }
+
+  /* Typing */
+  .typing-indicator { display:flex; gap:5px; align-items:center; }
+  .typing-indicator span {
+    width:6px; height:6px; background:var(--blue); border-radius:50%;
+    animation:typing-dot 1.2s ease-in-out infinite;
+  }
+  .typing-indicator span:nth-child(2){animation-delay:0.2s;}
+  .typing-indicator span:nth-child(3){animation-delay:0.4s;}
+  @keyframes typing-dot {
+    0%,80%,100%{opacity:0.2;transform:scale(0.8);}
+    40%{opacity:1;transform:scale(1);}
+  }
+
+  /* Boot lines */
+  .boot-line { font-size:11px; color:var(--blue-dim); letter-spacing:1px; padding:2px 0; }
+  .boot-line.ok::after { content:' [OK]'; color:var(--green); }
+
+  /* ── FOOTER ── */
+  footer {
+    flex-shrink: 0;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    background: rgba(0,10,20,0.95);
+    backdrop-filter: blur(10px);
+  }
+
+  .input-wrapper {
+    display:flex; gap:8px; align-items:center;
+    background:var(--panel); border:1px solid var(--border);
+    padding:4px 4px 4px 14px; position:relative;
+  }
+  .input-wrapper::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:1px;
+    background:linear-gradient(90deg,var(--blue),transparent);
+  }
+  .input-prefix {
+    font-family:'Orbitron',sans-serif; font-size:10px;
+    color:var(--blue); letter-spacing:2px; white-space:nowrap; flex-shrink:0;
+  }
+  #user-input {
+    flex:1; background:transparent; border:none; outline:none;
+    color:white; font-family:'Share Tech Mono',monospace;
+    font-size:13px; caret-color:var(--blue); min-width:0;
+  }
+  #user-input::placeholder { color:rgba(0,212,255,0.3); }
+  #user-input.interim { color:rgba(0,255,136,0.8); }
+
+  .btn {
+    background:transparent; border:1px solid var(--border); color:var(--blue);
+    padding:9px 11px; cursor:pointer;
+    font-family:'Orbitron',sans-serif; font-size:9px; letter-spacing:1px;
+    transition:all 0.2s; display:flex; align-items:center; gap:5px;
+    white-space:nowrap; flex-shrink:0;
+  }
+  .btn:hover { background:rgba(0,212,255,0.1); border-color:var(--blue); }
+
+  .btn.send-btn { border-color:var(--blue); background:rgba(0,212,255,0.08); }
+  .btn.send-btn:hover { background:rgba(0,212,255,0.2); }
+
+  .btn.stop-btn { border-color:var(--red); color:var(--red); display:none; }
+  .btn.stop-btn.visible { display:flex; }
+  .btn.stop-btn:hover { background:rgba(255,58,58,0.1); }
+
+  .btn.voice-btn.active { border-color:var(--gold); color:var(--gold); background:rgba(255,201,64,0.08); }
+
+  .btn.mic-btn { border-color:rgba(0,255,136,0.3); color:rgba(0,255,136,0.6); }
+  .btn.mic-btn.listening {
+    border-color:var(--green); color:var(--green);
+    background:rgba(0,255,136,0.08);
+    box-shadow:0 0 16px rgba(0,255,136,0.3);
+    animation:mic-pulse 1s ease-in-out infinite;
+  }
+  @keyframes mic-pulse {
+    0%,100%{box-shadow:0 0 8px rgba(0,255,136,0.3);}
+    50%{box-shadow:0 0 22px rgba(0,255,136,0.6);}
+  }
+  .btn.mic-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+  /* Mic status bar */
+  #mic-status {
+    font-size:10px; letter-spacing:1px; color:var(--green);
+    text-align:center; height:16px; margin-bottom:4px;
+    display:none;
+  }
+  #mic-status.visible { display:block; }
+
+  .cursor { animation: cursor-blink 0.8s step-end infinite; }
+  @keyframes cursor-blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+  @media(max-width:600px){
+    .status-panel{display:none;}
+    .title-group h1{font-size:13px; letter-spacing:3px;}
+    .btn{padding:8px 8px; font-size:8px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="scan-line"></div>
+
+<div id="app">
+  <!-- HEADER -->
+  <header>
+    <div class="logo">
+      <div class="arc-reactor">
+        <svg viewBox="0 0 38 38" fill="none">
+          <circle cx="19" cy="19" r="17" stroke="#00d4ff" stroke-width="0.5" opacity="0.3"/>
+          <circle cx="19" cy="19" r="13" stroke="#00d4ff" stroke-width="0.5" opacity="0.5"/>
+          <path d="M19 6 L22 16 L19 14 L16 16 Z" fill="#00d4ff" opacity="0.4"/>
+          <path d="M32 19 L22 22 L24 19 L22 16 Z" fill="#00d4ff" opacity="0.4"/>
+          <path d="M19 32 L16 22 L19 24 L22 22 Z" fill="#00d4ff" opacity="0.4"/>
+          <path d="M6 19 L16 16 L14 19 L16 22 Z" fill="#00d4ff" opacity="0.4"/>
+        </svg>
+        <div class="arc-core"></div>
+      </div>
+      <div class="title-group">
+        <h1>J.A.R.V.I.S</h1>
+        <p>JUST A RATHER VERY INTELLIGENT SYSTEM</p>
+      </div>
+    </div>
+    <div class="status-panel">
+      <div class="status-item">MODEL
+        <select id="model-select" style="background:#020c14;border:1px solid var(--border);color:var(--blue);font-family:'Share Tech Mono',monospace;font-size:11px;outline:none;cursor:pointer;padding:2px 4px;max-width:130px;">
+          <option value="">LOADING...</option>
+        </select>
+      </div>
+      <div class="status-item">OLLAMA<span id="ollama-status">CHECKING</span></div>
+      <div class="online-dot" id="status-dot" style="background:#888;box-shadow:0 0 0 #888;animation:none;"></div>
+    </div>
+  </header>
+
+  <!-- CHAT -->
+  <div id="chat-container"></div>
+
+  <!-- WAVEFORM -->
+  <div id="waveform"></div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div id="mic-status">● VOICE INPUT ACTIVE — SPEAK NOW</div>
+    <div class="input-wrapper">
+      <span class="input-prefix">CMD://</span>
+      <input type="text" id="user-input" placeholder="Enter command or query..." autocomplete="off" />
+      <button class="btn mic-btn" id="mic-btn">🎙 MIC</button>
+      <button class="btn voice-btn" id="voice-toggle">🔊 VOICE</button>
+      <button class="btn stop-btn" id="stop-btn">■ STOP</button>
+      <button class="btn send-btn" id="send-btn">▶ SEND</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+// ── STATE ──
+const state = {
+  voiceEnabled: true,
+  speaking: false,
+  speechSynth: window.speechSynthesis,
+  waveInterval: null,
+  voices: [],
+  jarvisVoice: null,
+};
+
+// ── DOM ──
+const chatEl    = document.getElementById('chat-container');
+const inputEl   = document.getElementById('user-input');
+const sendBtn   = document.getElementById('send-btn');
+const stopBtn   = document.getElementById('stop-btn');
+const voiceBtn  = document.getElementById('voice-toggle');
+const micBtn    = document.getElementById('mic-btn');
+const waveform  = document.getElementById('waveform');
+const micStatus = document.getElementById('mic-status');
+
+// ── WAVEFORM ──
+for (let i = 0; i < 32; i++) {
+  const b = document.createElement('div');
+  b.className = 'wave-bar';
+  waveform.appendChild(b);
+}
+const waveBars = waveform.querySelectorAll('.wave-bar');
+
+function startWave() {
+  waveform.classList.add('active');
+  state.waveInterval = setInterval(() => {
+    waveBars.forEach(b => {
+      const h = Math.random() * 28 + 4;
+      b.style.height = h + 'px';
+      b.style.opacity = (h / 32).toFixed(2);
+    });
+  }, 80);
+}
+function stopWave() {
+  clearInterval(state.waveInterval);
+  waveform.classList.remove('active');
+  waveBars.forEach(b => b.style.height = '4px');
+}
+
+// ── VOICES ──
+function loadVoices() {
+  state.voices = state.speechSynth.getVoices();
+  const tests = [
+    v => v.name.toLowerCase().includes('daniel') && v.lang.startsWith('en'),
+    v => v.name.toLowerCase().includes('alex')   && v.lang.startsWith('en'),
+    v => v.name.toLowerCase().includes('google uk english male'),
+    v => v.lang === 'en-GB',
+    v => v.lang.startsWith('en'),
+  ];
+  for (const t of tests) {
+    const f = state.voices.find(t);
+    if (f) { state.jarvisVoice = f; break; }
+  }
+}
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+// ── TTS ──
+function speak(text) {
+  if (!state.voiceEnabled) return;
+  state.speechSynth.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  if (state.jarvisVoice) utt.voice = state.jarvisVoice;
+  utt.rate = 0.88; utt.pitch = 0.6; utt.volume = 1;
+  utt.onstart = () => {
+    state.speaking = true;
+    stopBtn.classList.add('visible');
+    startWave();
+    const last = [...document.querySelectorAll('.message.jarvis')].pop();
+    if (last) last.querySelector('.msg-avatar').classList.add('speaking');
+  };
+  utt.onend = utt.onerror = () => {
+    state.speaking = false;
+    stopBtn.classList.remove('visible');
+    stopWave();
+    document.querySelectorAll('.msg-avatar.speaking').forEach(a => a.classList.remove('speaking'));
+  };
+  state.speechSynth.speak(utt);
+}
+function stopSpeech() {
+  state.speechSynth.cancel();
+  state.speaking = false;
+  stopBtn.classList.remove('visible');
+  stopWave();
+  document.querySelectorAll('.msg-avatar.speaking').forEach(a => a.classList.remove('speaking'));
+}
+
+// ── MESSAGES ──
+function addMessage(role, text) {
+  const isJ = role === 'jarvis';
+  const d = document.createElement('div');
+  d.className = `message ${isJ ? 'jarvis' : 'user'}`;
+  d.innerHTML = `
+    <div class="msg-avatar">${isJ ? 'JAR' : 'USR'}</div>
+    <div class="msg-content">
+      <div class="msg-label">${isJ ? 'J.A.R.V.I.S // RESPONSE' : 'STARK // INPUT'}</div>
+      <div class="msg-bubble">${text}</div>
+    </div>`;
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function addTyping() {
+  const d = document.createElement('div');
+  d.className = 'message jarvis'; d.id = 'typing-msg';
+  d.innerHTML = `
+    <div class="msg-avatar">JAR</div>
+    <div class="msg-content">
+      <div class="msg-label">J.A.R.V.I.S // PROCESSING</div>
+      <div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>
+    </div>`;
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+function removeTyping() {
+  const t = document.getElementById('typing-msg');
+  if (t) t.remove();
+}
+
+// ── OLLAMA CONFIG ──
+const OLLAMA_URL = 'http://localhost:11434';
+const SYSTEM_PROMPT = `You are J.A.R.V.I.S (Just A Rather Very Intelligent System), the AI assistant created by Tony Stark. You speak in a calm, precise, and slightly formal British manner. You address the user as "sir" or "ma'am". Keep responses concise and helpful. You are currently integrated into the Stark Industries interface.`;
+const conversationHistory = [];
+let currentModel = '';
+let abortController = null;
+
+const modelSelect = document.getElementById('model-select');
+const ollamaStatus = document.getElementById('ollama-status');
+const statusDot = document.getElementById('status-dot');
+
+function setOllamaOnline() {
+  ollamaStatus.textContent = 'ONLINE';
+  ollamaStatus.style.color = 'var(--green)';
+  statusDot.style.background = 'var(--green)';
+  statusDot.style.boxShadow = '0 0 8px var(--green)';
+  statusDot.style.animation = 'blink 2s ease-in-out infinite';
+}
+function setOllamaOffline(msg) {
+  ollamaStatus.textContent = msg || 'OFFLINE';
+  ollamaStatus.style.color = 'var(--red)';
+  statusDot.style.background = 'var(--red)';
+  statusDot.style.boxShadow = '0 0 8px var(--red)';
+  statusDot.style.animation = 'none';
+}
+
+async function loadModels() {
+  try {
+    const res = await fetch(`${OLLAMA_URL}/api/tags`);
+    if (!res.ok) throw new Error('not ok');
+    const data = await res.json();
+    const models = data.models || [];
+    modelSelect.innerHTML = '';
+    if (models.length === 0) {
+      modelSelect.innerHTML = '<option value="">NO MODELS</option>';
+      setOllamaOffline('NO MODELS');
+      return;
+    }
+    models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m.name;
+      opt.textContent = m.name.split(':')[0].toUpperCase();
+      modelSelect.appendChild(opt);
+    });
+    currentModel = models[0].name;
+    setOllamaOnline();
+  } catch(e) {
+    modelSelect.innerHTML = '<option value="">OFFLINE</option>';
+    setOllamaOffline('OFFLINE');
+  }
+}
+
+modelSelect.addEventListener('change', () => {
+  currentModel = modelSelect.value;
+});
+
+// Streaming bubble helpers
+function addStreamingBubble() {
+  const d = document.createElement('div');
+  d.className = 'message jarvis'; d.id = 'stream-msg';
+  d.innerHTML = `
+    <div class="msg-avatar" id="stream-avatar">JAR</div>
+    <div class="msg-content">
+      <div class="msg-label">J.A.R.V.I.S // RESPONSE</div>
+      <div class="msg-bubble" id="stream-bubble"><span class="cursor">▌</span></div>
+    </div>`;
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+function updateStreamingBubble(text) {
+  const bubble = document.getElementById('stream-bubble');
+  if (bubble) {
+    bubble.innerHTML = text.replace(/\n/g, '<br>') + '<span class="cursor">▌</span>';
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+}
+
+function finalizeStreamingBubble(text) {
+  const bubble = document.getElementById('stream-bubble');
+  if (bubble) bubble.innerHTML = text.replace(/\n/g, '<br>');
+  const el = document.getElementById('stream-msg');
+  if (el) el.id = '';
+}
+
+// ── SEND WITH OLLAMA ──
+async function sendMessage() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  inputEl.value = '';
+  inputEl.classList.remove('interim');
+
+  if (!currentModel) {
+    addMessage('jarvis', '⚠ No model selected or Ollama is offline, sir. Please start Ollama and reload the page.');
+    return;
+  }
+
+  addMessage('user', text);
+  conversationHistory.push({ role: 'user', content: text });
+
+  addTyping();
+  sendBtn.disabled = true;
+  sendBtn.textContent = '⏳ WAIT';
+
+  abortController = new AbortController();
+
+  try {
+    const res = await fetch(`${OLLAMA_URL}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: abortController.signal,
+      body: JSON.stringify({
+        model: currentModel,
+        stream: true,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...conversationHistory
+        ]
+      })
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    removeTyping();
+    addStreamingBubble();
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      const lines = chunk.split('\n').filter(l => l.trim());
+      for (const line of lines) {
+        try {
+          const json = JSON.parse(line);
+          if (json.message?.content) {
+            fullText += json.message.content;
+            updateStreamingBubble(fullText);
+          }
+          if (json.done) break;
+        } catch {}
+      }
+    }
+
+    finalizeStreamingBubble(fullText);
+    conversationHistory.push({ role: 'assistant', content: fullText });
+    speak(fullText);
+
+  } catch(e) {
+    removeTyping();
+    const el = document.getElementById('stream-msg');
+    if (el) el.remove();
+    if (e.name === 'AbortError') {
+      addMessage('jarvis', 'Response interrupted, sir.');
+    } else {
+      addMessage('jarvis', `⚠ CONNECTION ERROR — Could not reach Ollama at ${OLLAMA_URL}. Please verify Ollama is running.`);
+      setOllamaOffline('ERROR');
+    }
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = '▶ SEND';
+    abortController = null;
+  }
+}
+
+// Stop generation on STOP button
+const origStopSpeech = stopSpeech;
+stopBtn.addEventListener('click', () => {
+  if (abortController) { abortController.abort(); }
+  origStopSpeech();
+});
+
+// ── SPEECH RECOGNITION ──
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition = null;
+let isListening = false;
+
+if (SR) {
+  recognition = new SR();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+
+  recognition.onstart = () => {
+    isListening = true;
+    micBtn.classList.add('listening');
+    micBtn.textContent = '⏹ STOP';
+    micStatus.classList.add('visible');
+    inputEl.value = '';
+    inputEl.placeholder = 'Listening...';
+    inputEl.classList.add('interim');
+    if (state.speaking) state.speechSynth.pause();
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '', final = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    inputEl.value = final || interim;
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+    micBtn.textContent = '🎙 MIC';
+    micStatus.classList.remove('visible');
+    inputEl.placeholder = 'Enter command or query...';
+    inputEl.classList.remove('interim');
+    if (state.speaking) state.speechSynth.resume();
+    const txt = inputEl.value.trim();
+    if (txt) sendMessage();
+  };
+
+  recognition.onerror = (e) => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+    micBtn.textContent = '🎙 MIC';
+    micStatus.classList.remove('visible');
+    inputEl.classList.remove('interim');
+    inputEl.placeholder = 'Enter command or query...';
+    const msgs = {
+      'not-allowed': 'Microphone access denied — please allow mic permission in your browser settings.',
+      'no-speech':   'No speech detected. Please try again.',
+      'network':     'Network error during voice recognition.',
+    };
+    addMessage('jarvis', `⚠ VOICE ERROR — ${msgs[e.error] || e.error}`);
+  };
+
+  micBtn.addEventListener('click', () => {
+    if (isListening) {
+      recognition.stop();
+    } else {
+      inputEl.value = '';
+      recognition.start();
+    }
+  });
+
+} else {
+  micBtn.disabled = true;
+  micBtn.title = 'Speech recognition requires Chrome or Safari';
+  micBtn.addEventListener('click', () =>
+    addMessage('jarvis', '⚠ Speech recognition is not supported in this browser, sir. Please use Chrome or Safari.')
+  );
+}
+
+// ── OTHER EVENTS ──
+sendBtn.addEventListener('click', sendMessage);
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
+});
+// stop handled in ollama block
+voiceBtn.addEventListener('click', () => {
+  state.voiceEnabled = !state.voiceEnabled;
+  if (!state.voiceEnabled) stopSpeech();
+  voiceBtn.classList.toggle('active', state.voiceEnabled);
+  voiceBtn.textContent = state.voiceEnabled ? '🔊 VOICE' : '🔇 MUTED';
+});
+voiceBtn.classList.add('active');
+
+// ── BOOT ──
+async function boot() {
+  const lines = [
+    {t:'INITIALIZING J.A.R.V.I.S v3.1.4', ok:false},
+    {t:'LOADING NEURAL INTERFACE MODULES', ok:true},
+    {t:'CALIBRATING VOICE SYNTHESIS ENGINE', ok:true},
+    {t:'SPEECH RECOGNITION MODULE READY', ok:!!SR},
+    {t:'CONNECTING TO OLLAMA ENGINE...', ok:false},
+  ];
+  const div = document.createElement('div');
+  div.style.padding = '8px 0';
+  chatEl.appendChild(div);
+  for (const l of lines) {
+    await new Promise(r => setTimeout(r, 260));
+    const p = document.createElement('div');
+    p.className = 'boot-line' + (l.ok ? ' ok' : '');
+    p.textContent = '> ' + l.t;
+    if (l.ok === false && !l.t.includes('INITIALIZING') && !l.t.includes('OLLAMA')) p.style.color = 'var(--blue)';
+    div.appendChild(p);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+  // Load models from Ollama
+  await loadModels();
+  const ollamaOk = currentModel !== '';
+  const lastP = document.createElement('div');
+  lastP.className = 'boot-line' + (ollamaOk ? ' ok' : '');
+  lastP.textContent = ollamaOk
+    ? `> OLLAMA CONNECTED — MODEL: ${currentModel.toUpperCase()}`
+    : '> OLLAMA OFFLINE — RUNNING IN DEMO MODE';
+  if (!ollamaOk) lastP.style.color = 'var(--red)';
+  div.appendChild(lastP);
+  chatEl.scrollTop = chatEl.scrollHeight;
+  await new Promise(r => setTimeout(r, 400));
+  div.remove();
+  const welcome = ollamaOk
+    ? `Good day, sir. J.A.R.V.I.S is online and connected to ${currentModel.split(':')[0]}. All systems are operational. How may I assist you?`
+    : "Good day, sir. J.A.R.V.I.S is online but I could not connect to Ollama. Please ensure Ollama is running on localhost:11434, then reload the page.";
+  addMessage('jarvis', welcome);
+  speak(welcome);
+}
+
+boot();
+</script>
+</body>
+</html>
